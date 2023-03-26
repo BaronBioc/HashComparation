@@ -13,10 +13,13 @@ echo "Enter the name of the file containing the expected hashes:"
 read expected_hashes_file
 
 # Compare the computed hashes with the expected hashes
-diff_output=$(awk '{print $1}' hashes.txt | diff -u - <(awk '{print $1}' "$expected_hashes_file"))
-if [ $? -eq 0 ]; then
-    echo "All hashes match the expected values."
-else
-    echo "Some hashes do not match the expected values:"
-    echo "$diff_output"
-fi
+line_num=1
+while read -r expected_hash filename; do
+    computed_hash=$(grep -F "$filename" hashes.txt | awk '{print $1}')
+    if cmp -s <(echo "$expected_hash") <(echo "$computed_hash"); then
+        echo "OK"
+    else
+        echo "#$line_num Hash mismatch: expected $expected_hash, computed $computed_hash for file $filename"
+    fi
+    ((line_num++))
+done < "$expected_hashes_file"
