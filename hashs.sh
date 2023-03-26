@@ -6,7 +6,7 @@ read dir_name
 
 # Compute the SHA-1 hashes of all files in the subdirectories of the specified directory
 cd "$dir_name"
-find . -mindepth 2 -type f -print0 | xargs -0 sha1sum > hashes.txt
+find -type f -print0 | xargs -0 sha1sum > hashes.txt
 
 # Prompt the user to enter the name of the file containing the expected hashes
 echo "Enter the name of the file containing the expected hashes:"
