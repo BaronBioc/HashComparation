@@ -1,56 +1,89 @@
-#!/bin/bash
+#include <stdio.h>
+
+#include <unistd.h>
+
+#include <sys/types.h>
+
+#include <sys/stat.h>
+
+#include <fcntl.h>
+
+#include <string.h>
+
+#include <stdbool.h>
 
 
 
-# Prompt the user to enter a directory name
+int main (int argc, char **argv) 
 
-read -p "Enter directory name: " dir_name
-
-
-
-# Compute the SHA-1 hashes of all files in the subdirectories of the specified directory
-
-find "$dir_name" -mindepth 2 -type f -print0 | xargs -0 sha1sum > "$dir_name/hashes.txt"
+{
 
 
 
-# Prompt the user to enter the name of the file containing the expected hashes
+	FILE *fd1 = fopen(argv[1], "r");
 
-read -p "Enter the name of the file containing the expected hashes: " expected_hashes_file
-
-
+	FILE *fd2 = fopen(argv[2], "r");
 
 
 
-# Compare the computed hashes with the expected hashes
+	bool cond = true;
 
-line_num=1
+	char line1[1000], line2[1000];
 
-hash_mismatch=false
-
-while read -r expected_hash filename; do
-
-    computed_hash=$(grep -F "$filename" "$dir_name/hashes.txt" | awk '{print $1}')
-
-    if ! cmp -s <(echo "$expected_hash") <(echo "$computed_hash"); then
-
-        echo -e "#$line_num: $expected_hash $filename \n $computed_hash $filename"
-
-        hash_mismatch=true
-
-    fi
-
-    ((line_num++))
-
-done < "$expected_hashes_file"
+	int lines = 1;
 
 
 
-# Output the final result
+	while (fgets(line1, 1000, fd1) != NULL && fgets(line2, 1000, fd2) != NULL) {
 
-if [ "$hash_mismatch" = false ]; then
 
-    echo "OK"
 
-fi
+		if ( strcmp(line1, line2) != 0 ) {
 
+
+
+			cond = false;
+
+
+
+			printf("#%d: ", lines);
+
+			printf("%s\t%s\n", line1, line2);
+
+
+
+		}
+
+
+
+		lines++;
+
+
+
+	}
+
+
+
+	if (cond == true) {
+
+
+
+		printf("OK\n");
+
+
+
+	}
+
+
+
+
+
+	fclose(fd1);
+
+	fclose(fd2);
+
+
+
+	return 0;
+
+}
